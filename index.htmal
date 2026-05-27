@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>محاكي وحاسبة كفاءة مضخة الكبش الهيدروليكي التفاعلي</title>
+    <!-- Google Fonts Cairo and JetBrains Mono -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Cairo', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 2px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        @keyframes ring-glow {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.3); opacity: 0.15; }
+        }
+        .glow-pulse {
+            animation: ring-glow 1.8s infinite ease-in-out;
+            transform-origin: center;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 font-sans antialiased p-0 m-0">
+
+    <div class="max-w-6xl mx-auto px-1 sm:px-4 py-4 sm:py-6">
+        
+        <!-- MAIN CARD -->
+        <div class="bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden">
+            
+            <!-- HEADER HERO SECTION -->
+            <div class="bg-slate-900 text-white p-5 sm:p-7 border-b border-slate-800">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-sky-500/10 rounded-2xl border border-sky-500/20 text-sky-450">
+                            <svg class="w-8 h-8 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <span class="text-[10px] uppercase font-bold tracking-widest bg-sky-500/20 text-sky-300 px-2.5 py-0.5 rounded-full border border-sky-500/20">منصة محاكاة فيزيائية</span>
+                            <h1 class="text-xl sm:text-2xl font-extrabold tracking-tight text-white mt-1">
+                                مـحاكي وحاسـبة مـضخة الكبـش الهيدروليـكي
+                            </h1>
+                            <p class="text-slate-400 text-xs sm:text-sm mt-1 font-normal leading-relaxed">
+                                شرح تفاعلي لرفع المياه بالطاقة الذاتية عبر المطرقة المائية الخالية تماماً من الكهرباء والمحروقات.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Dynamic Live Status Brand Panel -->
+                    <div class="flex items-center gap-3 bg-slate-800/80 px-4 py-2.5 rounded-2xl border border-slate-700/50 w-full md:w-auto justify-between md:justify-start">
+                        <div class="text-right">
+                            <div class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">معدل الدقات الحالي</div>
+                            <div id="beats-indicator" class="text-sm font-mono font-bold text-sky-400">76 دقة/دقيقة</div>
+                        </div>
+                        <div class="h-8 w-[1px] bg-slate-700"></div>
+                        <div class="text-right">
+                            <div class="text-[9px] text-slate-400 uppercase font-bold tracking-wider">الحالة الميكانيكية</div>
+                            <div id="valve-indicator" class="text-xs font-bold text-emerald-400 flex items-center gap-1">
+                                <span class="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                تسارع التدفق
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABS SYSTEM -->
+                <div class="flex border-t border-slate-800 mt-6 gap-2 overflow-x-auto custom-scrollbar pt-3">
+                    <button onclick="switchTab('simulation')" id="tab-btn-simulation" class="tab-btn py-2 px-4 font-bold text-xs sm:text-sm flex items-center gap-1.5 border-b-2 border-sky-400 text-sky-400 bg-sky-950/20 rounded-xl transition-all whitespace-nowrap">
+                        🚀 المحاكاة الفيزيائية التفاعلية
+                    </button>
+                    <button onclick="switchTab('calculations')" id="tab-btn-calculations" class="tab-btn py-2 px-4 font-bold text-xs sm:text-sm flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-white rounded-xl transition-all whitespace-nowrap">
+                        📊 حاسبة الموقع والتحليل
+                    </button>
+                    <button onclick="switchTab('diy')" id="tab-btn-diy" class="tab-btn py-2 px-4 font-bold text-xs sm:text-sm flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-white rounded-xl transition-all whitespace-nowrap">
+                        🛠️ كراسة الصنع والتجميع الذاتي (DIY)
+                    </button>
+                    <button onclick="switchTab('troubleshooting')" id="tab-btn-troubleshooting" class="tab-btn py-2 px-4 font-bold text-xs sm:text-sm flex items-center gap-1.5 border-b-2 border-transparent text-slate-400 hover:text-white rounded-xl transition-all whitespace-nowrap">
+                        🔧 دليل إصلاح الصمامات والأعطال
+                    </button>
+                </div>
+            </div>
+
+            <!-- PANEL BOX BODY BACKGROUND -->
+            <div class="p-4 sm:p-6 bg-slate-50">
+
+                <!-- TAB 1: INTERACTIVE SIMULATION -->
+                <div id="view-simulation" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                    
+                    <!-- Left Column - Simulator and spark monitor -->
+                    <div class="lg:col-span-8 flex flex-col gap-5">
+                        
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            
+                            <!-- Phase description status banner -->
+                            <div class="bg-slate-100/90 px-4 py-3 sm:px-5 flex flex-col sm:flex-row items-center justify-between border-b border-slate-200 gap-3">
+                                <div class="flex items-center gap-2">
+                                    <span id="phase-badge" class="px-2.5 py-1 bg-sky-100 text-sky-800 font-extrabold rounded-lg text-xs">
+                                        المرحلة 1
+                                    </span>
+                                    <h3 id="phase-title" class="text-xs sm:text-sm font-bold text-slate-850">
+                                        تسارع تدفق المياه وانطلاق النبضة
+                                    </h3>
+                                </div>
+                                
+                                <div class="flex items-center gap-2">
+                                    <button onclick="toggleRunning()" id="play-pause-btn" class="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] sm:text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition">
+                                        إيقاف مؤقت
+                                    </button>
+                                    <button onclick="forceNextStep()" class="p-1 px-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-50 text-[11px] font-semibold flex items-center gap-1">
+                                        خطوة &rarr;
+                                    </button>
+                                    <div class="flex items-center rounded-lg border border-slate-300 overflow-hidden bg-white">
+                                        <button onclick="setSpeedMultiplier(0.5)" id="speed-0" class="speed-btn text-[9px] font-bold px-2 py-1 bg-slate-100 text-slate-600 border-l border-slate-200">0.5x</button>
+                                        <button onclick="setSpeedMultiplier(1)" id="speed-1" class="speed-btn text-[9px] font-bold px-2 py-1 bg-sky-600 text-white border-l border-slate-200">1x</button>
+                                        <button onclick="setSpeedMultiplier(2)" id="speed-2" class="speed-btn text-[9px] font-bold px-2 py-1 bg-slate-100 text-slate-600">2x</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- GEOMETRY INTERACTIVE CANVAS SVG -->
+                            <div class="relative bg-slate-950 p-2 sm:p-5 overflow-x-auto custom-scrollbar">
+                                <div class="min-w-[650px] w-full flex justify-center">
+                                    <svg viewBox="0 0 800 450" class="w-full max-w-[800px] h-auto select-none overflow-visible">
+                                        <defs>
+                                            <linearGradient id="gradientWater" x1="0" y1="0" x2="1" y2="1">
+                                                <stop offset="0%" stop-color="#38bdf8" />
+                                                <stop offset="100%" stop-color="#0284c7" />
+                                            </linearGradient>
+                                            <linearGradient id="chamberGlowStatic" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="0%" stop-color="#e2e8f0" stop-opacity="0.1" />
+                                                <stop offset="100%" stop-color="#475569" stop-opacity="0.4" />
+                                            </linearGradient>
+                                        </defs>
+
+                                        <!-- Ground Background -->
+                                        <path d="M 0 350 L 320 380 L 320 450 L 0 450 Z" fill="#334155" opacity="0.15" />
+                                        <line x1="0" y1="350" x2="320" y2="380" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3 2" />
+                                        <path d="M 500 450 L 500 380 L 640 280 L 800 280 L 800 450 Z" fill="#334155" opacity="0.15" />
+                                        <line x1="500" y1="380" x2="640" y2="280" stroke="#64748b" stroke-width="1.2" stroke-dasharray="3 2" />
+
+                                        <!-- Concrete Support Foundation Block -->
+                                        <rect x="330" y="380" width="160" height="40" fill="#64748b" rx="4" />
+                                        <text x="410" y="405" fill="#f8fafc" font-size="11" text-anchor="middle" font-weight="bold" opacity="0.75">قاعدة تثبيت خرسانية صلبة</text>
+
+                                        <!-- SUPPLY WATER RESERVOIR (أ) -->
+                                        <rect x="15" y="80" width="110" height="160" fill="none" stroke="#475569" stroke-width="3" rx="8" />
+                                        <rect id="svg-source-water-fill" x="18" y="140" width="104" height="98" fill="url(#gradientWater)" opacity="0.65" rx="5" />
+                                        <text x="70" y="60" fill="#94a3b8" font-size="12" font-weight="bold" text-anchor="middle">خزان التغذية (أ)</text>
+
+                                        <!-- DRIVE INLET PIPE (ب) -->
+                                        <line x1="125" y1="205" x2="340" y2="350" stroke="#64748b" stroke-width="26" stroke-linecap="round" />
+                                        <line id="svg-drive-water-beam" x1="125" y1="205" x2="340" y2="350" stroke="#0ea5e9" stroke-width="18" stroke-linecap="round" opacity="0.9" />
+
+                                        <!-- Moving Water Particles -->
+                                        <g id="drive-particles" opacity="0.75">
+                                            <circle id="bp1" cx="140" cy="216" r="4.5" fill="#f8fafc" />
+                                            <circle id="bp2" cx="195" cy="254" r="4" fill="#bae6fd" />
+                                            <circle id="bp3" cx="245" cy="287" r="4" fill="#f8fafc" />
+                                            <circle id="bp4" cx="300" cy="324" r="4.5" fill="#bae6fd" />
+                                        </g>
+
+                                        <!-- CAST BODY -->
+                                        <rect x="330" y="335" width="130" height="35" fill="#334155" rx="8" />
+                                        <rect x="340" y="343" width="110" height="19" fill="#0284c7" opacity="0.85" />
+
+                                        <!-- CLACK CHAMBER (ج) -->
+                                        <rect x="420" y="300" width="30" height="40" fill="#334155" />
+                                        <rect x="425" y="304" width="20" height="36" fill="#0ea5e9" opacity="0.85" />
+                                        <rect x="410" y="290" width="50" height="10" fill="#eab308" rx="2" />
+
+                                        <!-- Waste Valve Plunger Arm & Brass Weight -->
+                                        <g id="svg-waste-plunger">
+                                            <rect x="419" y="274" width="32" height="10" fill="#854d0e" rx="1.5" />
+                                            <line x1="435" y1="262" x2="435" y2="274" stroke="#ca8a04" stroke-width="5.5" />
+                                            <circle cx="435" cy="254" r="7.5" fill="#ef4444" />
+                                        </g>
+
+                                        <!-- Water spilling spray effect -->
+                                        <path id="svg-water-spray" d="M 412 284 C 390 270 380 278 372 285 M 458 284 C 475 270 488 275 496 285" stroke="#38bdf8" stroke-width="4.5" fill="none" stroke-linecap="round" opacity="0" />
+
+                                        <!-- CHECK VALVE (د) -->
+                                        <rect x="355" y="300" width="30" height="40" fill="#334155" />
+                                        <rect x="360" y="304" width="20" height="36" fill="#0284c7" opacity="0.9" />
+                                        <line id="svg-check-gate" x1="360" y1="310" x2="380" y2="310" stroke="#ef4444" stroke-width="5" stroke-linecap="round" />
+
+                                        <!-- Wave Shocks ring -->
+                                        <g id="svg-hammer-spark" fill="none" stroke="#f43f5e" stroke-width="3" opacity="0">
+                                            <circle cx="435" cy="290" r="14" />
+                                            <circle cx="435" cy="290" r="26" opacity="0.5" />
+                                        </g>
+
+                                        <!-- PRESSURE DOME (هـ) -->
+                                        <path d="M 335 240 Q 335 150 370 150 Q 405 150 405 240 L 405 305 L 335 305 Z" fill="url(#chamberGlowStatic)" />
+                                        <rect id="svg-chamber-water-level" x="337" y="235" width="66" height="70" fill="#0284c7" opacity="0.75" />
+                                        <!-- Air Pocket bubble -->
+                                        <path d="M 337 235 Q 335 152 370 152 Q 403 152 403 235 Z" fill="#ffedd5" opacity="0.4" stroke="#fed7aa" stroke-width="1.2" stroke-dasharray="3 2" />
+                                        <text x="370" y="195" fill="#f97316" font-size="9.5" font-weight="extrabold" text-anchor="middle">هواء محبوس</text>
+
+                                        <path d="M 335 250 L 335 305 M 405 250 L 405 305" stroke="#94a3b8" stroke-width="3" />
+                                        <path d="M 335 250 Q 335 150 370 150 Q 405 150 405 250" stroke="#94a3b8" stroke-width="3" fill="none" />
+
+                                        <!-- DISCHARGE PIPE (و) -->
+                                        <path d="M 405 285 L 430 285 L 430 350 L 680 350 L 680 100 L 710 100" fill="none" stroke="#475569" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M 405 285 L 430 285 L 430 350 L 680 350 L 680 100 L 710 100" fill="none" stroke="#0ea5e9" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.85" />
+                                        <path id="svg-delivery-dash-flow" d="M 405 285 L 430 285 L 430 350 L 680 350 L 680 100 L 710 100" fill="none" stroke="#ffffff" stroke-width="4" stroke-linecap="round" stroke-dasharray="8 20" />
+
+                                        <!-- OVERHEAD HARVEST TANK (ز) -->
+                                        <rect x="710" y="50" width="75" height="90" fill="none" stroke="#475569" stroke-width="3" rx="6" />
+                                        <rect id="svg-target-water-fill" x="713" y="100" width="69" height="38" fill="url(#gradientWater)" opacity="0.65" rx="4" />
+                                        <text x="748" y="38" fill="#94a3b8" font-size="12" font-weight="bold" text-anchor="middle">خزان الهدف (ز)</text>
+
+                                        <!-- Water spill trickle inside destination-->
+                                        <path id="svg-water-trickle" d="M 710 100 Q 722 100 726 112 T 728 135" stroke="#38bdf8" stroke-width="3" fill="none" stroke-linecap="round" opacity="0.8" />
+
+                                        <!-- Measurement dimension lines -->
+                                        <line x1="12" y1="238" x2="160" y2="238" stroke="#10b981" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.4" />
+                                        <line x1="12" y1="140" x2="12" y2="238" stroke="#10b981" stroke-width="1.2" />
+                                        <polygon points="12,137 8,144 16,144" fill="#10b981" />
+                                        <polygon points="12,241 8,234 16,234" fill="#10b981" />
+                                        <text id="lbl-H-val" x="22" y="195" fill="#10b981" font-size="10.5" font-weight="bold">H = 2.5m</text>
+
+                                        <line x1="660" y1="350" x2="795" y2="350" stroke="#f43f5e" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.4" />
+                                        <line x1="660" y1="100" x2="795" y2="100" stroke="#f43f5e" stroke-width="0.8" stroke-dasharray="3 3" opacity="0.4" />
+                                        <line x1="790" y1="100" x2="790" y2="350" stroke="#f43f5e" stroke-width="1.2" />
+                                        <polygon points="790,97 786,104 794,104" fill="#f43f5e" />
+                                        <polygon points="790,353 786,346 794,346" fill="#f43f5e" />
+                                        <text id="lbl-h-val" x="735" y="235" fill="#f43f5e" font-size="10.5" font-weight="bold">h = 15m</text>
+
+                                        <!-- HOTSPOTS -->
+                                        <g class="cursor-pointer" onclick="selectComponent('source_tank')">
+                                            <circle id="pin-source_tank" cx="70" cy="160" r="14" fill="#1e293b" stroke="#ffffff" stroke-width="2" />
+                                            <text x="70" y="164" fill="#ffffff" font-size="11" text-anchor="middle" font-weight="bold">أ</text>
+                                        </g>
+                                        <g class="cursor-pointer" onclick="selectComponent('drive_pipe')">
+                                            <circle id="pin-drive_pipe" cx="210" cy="265" r="14" fill="#1e293b" stroke="#ffffff" stroke-width="2" />
+                                            <text x="210" y="269" fill="#ffffff" font-size="11" text-anchor="middle" font-weight="bold">ب</text>
+                                        </g>
+                                        <g class="cursor-pointer" onclick="selectComponent('waste_valve')">
+                                            <circle id="pin-waste_valve" cx="482" cy="305" r="14" fill="#0ea5e9" stroke="#ffffff" stroke-width="2" class="glow-pulse" />
+                                            <text x="482" y="309" fill="#ffffff" font-size="11" text-anchor="middle" font-weight="bold">ج</text>
+                                        </g>
+                                        <g class="cursor-pointer" onclick="selectComponent('check_valve')">
+                                            <circle id="pin-check_valve" cx="315" cy="300" r="14" fill="#1e293b" stroke="#ffffff" stroke-width="2" />
+                                            <text x="315" y="304" fill="#ffffff" font-size="11" text-anchor="middle" font-weight="bold">د</text>
+                                        </g>
+                                        <g class="cursor-pointer" onclick="selectComponent('air_chamber')">
+                                            <circle id="pin-air_chamber" cx="370" cy="115" r="14" fill="#1e293b" stroke="#ffffff" stroke-width="2" />
+                                            <text x="370" y="119" fill="#ffffff" font-size="11" text-anchor="middle" font-weight="bold">هـ</text>
+                                        </g>
+                                        <g class="cursor-pointer" onclick="selectComponent('delivery_pipe')">
+                                            <circle id="pin-delivery_pipe" cx="580" cy="350" r="14" fill="#1e293b" stroke="#ffffff" stroke-width="2" />
+                                            <text x="580" y="354" fill="#ffffff" font-size="11" text-anchor="middle" font-weight="bold">و</text>
+                                        </g>
+                                        <g class="cursor-pointer" onclick="selectComponent('delivery_tank')">
+                                            <circle id="pin-delivery_tank" cx="745" cy="165" r="14" fill="#1e293b" stroke="#ffffff" stroke-width="2" />
+                                            <text x="745" y="169" fill="#ffffff" font-size="11" text-anchor="middle" font-weight="bold">ز</text>
+                                        </g>
+                                    </svg>
+                                </div>
+                                <div class="absolute bottom-3 right-3 text-[10px] text-slate-400 bg-slate-950/70 py-1.5 px-3 rounded-xl border border-slate-700/50 backdrop-blur-sm">
+                                    💡 انقر فوق الأحرف الإقليدية (أ، ب، ج...) لقراءة أدوار الأجزاء ونوع خامات الصنع.
+                                </div>
+                            </div>
+
+                            <!-- PERIODIC PHASES BAR -->
+                            <div class="p-4 bg-slate-50 border-t border-b border-slate-200">
+                                <h4 class="text-xs font-bold text-slate-700 mb-2.5 flex items-center gap-1.5 font-sans">
+                                    <span class="h-2 w-2 rounded-full bg-sky-500 animate-ping"></span>
+                                    مخطط الدورة الميكانيكية الزمنية التلقائية:
+                                </h4>
+                                <div class="grid grid-cols-4 gap-2 text-center text-[11px]">
+                                    <div onclick="forcePhase(0)" id="phase-idx-0" class="p-2.5 rounded-xl border bg-sky-600 border-sky-700 text-white font-bold cursor-pointer transition">
+                                        <div>المرحلة 1</div>
+                                        <div class="truncate">تسارع التدفق</div>
+                                    </div>
+                                    <div onclick="forcePhase(1)" id="phase-idx-1" class="p-2.5 rounded-xl border bg-white border-slate-200 text-slate-600 hover:border-slate-300 cursor-pointer transition">
+                                        <div>المرحلة 2</div>
+                                        <div class="truncate">المطرقة المائية</div>
+                                    </div>
+                                    <div onclick="forcePhase(2)" id="phase-idx-2" class="p-2.5 rounded-xl border bg-white border-slate-200 text-slate-600 hover:border-slate-300 cursor-pointer transition">
+                                        <div>المرحلة 3</div>
+                                        <div class="truncate">دخول الماء والضخ</div>
+                                    </div>
+                                    <div onclick="forcePhase(3)" id="phase-idx-3" class="p-2.5 rounded-xl border bg-white border-slate-200 text-slate-600 hover:border-slate-300 cursor-pointer transition">
+                                        <div>المرحلة 4</div>
+                                        <div class="truncate">الارتداد والتكرار</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- REALTIME STATS METERS -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 divide-y sm:divide-x sm:divide-x-reverse sm:divide-y-0 divide-slate-100 bg-white">
+                                <div class="p-4 flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[10px] text-slate-400 uppercase font-bold">المقدار الصافي المرفوع</div>
+                                        <div id="metric-pumped" class="text-xl font-bold font-mono text-emerald-600 mt-0.5">0.000 لتر</div>
+                                    </div>
+                                    <span class="text-2xl bg-emerald-50 p-2 rounded-xl text-emerald-600">🚰</span>
+                                </div>
+                                <div class="p-4 flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[10px] text-slate-400 uppercase font-bold">المقدار المهدور للتصريف</div>
+                                        <div id="metric-wasted" class="text-xl font-bold font-mono text-slate-600 mt-0.5">0.000 لتر</div>
+                                    </div>
+                                    <span class="text-2xl bg-slate-50 p-2 rounded-xl text-slate-500">💧</span>
+                                </div>
+                                <div class="p-4 flex items-center justify-between">
+                                    <div>
+                                        <div class="text-[10px] text-slate-400 uppercase font-bold">عدد النبضات الإجمالية</div>
+                                        <div id="metric-beats" class="text-xl font-bold font-mono text-sky-600 mt-0.5">0 دقة</div>
+                                    </div>
+                                    <button onclick="resetOdometer()" class="p-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-lg text-xs font-semibold transition">
+                                        🔄 تصفير
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- GRAPH PRESSURE PANEL -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="flex items-center gap-1.5">
+                                    <span class="text-rose-500">📈</span>
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-800">رصد الضغط اللحظي التلقائي (بار Bar)</h4>
+                                </div>
+                                <span id="gauge-pressure" class="font-mono bg-rose-50 border border-rose-200 text-rose-700 font-bold px-3 py-1 rounded-lg text-xs">
+                                    0.25 Bar
+                                </span>
+                            </div>
+
+                            <div class="h-28 bg-slate-950 rounded-xl relative overflow-hidden flex items-end">
+                                <svg id="chart-spark" viewBox="0 0 500 100" class="w-full h-full" preserveAspectRatio="none">
+                                    <path id="chart-spark-path" d="M0,75 L500,75" fill="none" stroke="#f43f5e" stroke-width="2.5" />
+                                </svg>
+                                <div class="absolute inset-0 border-t border-b border-rose-500/10 pointer-events-none"></div>
+                                <div class="absolute bottom-[25px] w-full border-t border-dashed border-rose-500/25 text-[8px] text-rose-400 px-2 pointer-events-none">الضغط الساكن للمنبع الرئيسي</div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- Right Column - Parameters Control -->
+                    <div class="lg:col-span-4 flex flex-col gap-6">
+                        
+                        <!-- SLIDERS CONTROLS -->
+                        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                            <h4 class="text-sm font-extrabold text-slate-800 mb-4 flex items-center gap-1.5 font-sans">
+                                ⚙️ موائم بارامترات الموقع والأنابيب
+                            </h4>
+
+                            <div class="space-y-4">
+                                <!-- H Slider -->
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-slate-700 font-bold">ارتفاع مياه المصدر المتوفر (H)</span>
+                                        <span id="slide-lbl-H" class="font-mono font-bold text-emerald-600">2.5 متر</span>
+                                    </div>
+                                    <input id="slider-H" type="range" min="1" max="8" step="0.5" value="2.5" oninput="runCalculationsAndUpdate()" class="w-full accent-emerald-500 h-1.5 bg-slate-100 rounded-lg cursor-pointer" />
+                                    <p class="text-[9px] text-slate-400 mt-1">الارتفاع العمودي من الخلية المائية الأعلى إلى المضخة.</p>
+                                </div>
+
+                                <!-- h Slider -->
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-slate-700 font-bold">ارتفاع خزان الضخ المطلوب (h)</span>
+                                        <span id="slide-lbl-h" class="font-mono font-bold text-rose-500">15 متر</span>
+                                    </div>
+                                    <input id="slider-h" type="range" min="5" max="45" step="1" value="15" oninput="runCalculationsAndUpdate()" class="w-full accent-rose-500 h-1.5 bg-slate-100 rounded-lg cursor-pointer" />
+                                    <p class="text-[9px] text-slate-400 mt-1">المسافة العمودية الصافية للبلدة أو خزان أعلى المحاصيل.</p>
+                                </div>
+
+                                <!-- Q Slider -->
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-slate-700 font-bold">تدفق نبع ومصدر المياه (Q)</span>
+                                        <span id="slide-lbl-Q" class="font-mono font-bold text-sky-600">45 لتر/د</span>
+                                    </div>
+                                    <input id="slider-Q" type="range" min="10" max="120" step="5" value="45" oninput="runCalculationsAndUpdate()" class="w-full accent-sky-500 h-1.5 bg-slate-100 rounded-lg cursor-pointer" />
+                                    <p class="text-[9px] text-slate-400 mt-1">سعة العين المائية الإجمالية الذاهبة للهدر وتشغيل مضخم النبض.</p>
+                                </div>
+
+                                <!-- Weight Slider -->
+                                <div>
+                                    <div class="flex justify-between text-xs mb-1">
+                                        <span class="text-slate-700 font-bold">وزن التوازن لثقل صمام هدر الفائض</span>
+                                        <span id="slide-lbl-weight" class="font-bold text-amber-500">3 (متوازن)</span>
+                                    </div>
+                                    <input id="slider-weight" type="range" min="1" max="5" step="1" value="3" oninput="runCalculationsAndUpdate()" class="w-full accent-amber-500 h-1.5 bg-slate-100 rounded-lg cursor-pointer" />
+                                    <p class="text-[9px] text-slate-400 mt-1">تعديل وزن اللسان؛ الأثقل يزيد حجم الضخ ويقلل الدقات بالدقيقة.</p>
+                                </div>
+                            </div>
+
+                            <!-- LIVE PERFORMANCE SUMMARY -->
+                            <div class="mt-4 p-4 bg-sky-50/50 rounded-2xl border border-sky-100 space-y-2.5 text-xs">
+                                <div class="flex justify-between items-center pb-1 border-b border-sky-100">
+                                    <span class="text-slate-500 font-semibold">الكفاءة التقديرية (D'Aubuisson):</span>
+                                    <strong id="live-eff" class="font-bold text-slate-800 text-sm font-mono">--%</strong>
+                                </div>
+                                <div class="flex justify-between items-center pb-1 border-b border-sky-100">
+                                    <span class="text-slate-500 font-semibold">تدفق الضخ المرفوع (q):</span>
+                                    <strong id="live-flow" class="font-bold text-sky-700 text-sm font-mono">-- لتر/د</strong>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <span class="text-slate-500 font-semibold">الإنتاج كلياً في اليوم:</span>
+                                    <strong id="live-daily" class="font-bold text-emerald-800 text-sm font-mono">-- لتر/يوم</strong>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- COMPONENT DETAILS SECTION -->
+                        <div id="details-card" class="bg-slate-900 border border-slate-800 text-slate-100 p-5 rounded-2xl shadow-md">
+                            <div class="space-y-3.5">
+                                <span class="bg-sky-500/10 text-sky-400 px-2 py-0.5 rounded border border-sky-500/20 text-[10px] uppercase font-bold tracking-widest">مواصفات الأجزاء والدور</span>
+                                <h3 id="det-arabic-title" class="text-base font-bold text-white">صمام النفايات (ج)</h3>
+                                <p id="det-role" class="text-xs text-slate-300 leading-relaxed font-normal">
+                                    هو صانع النبض؛ صمام متأرجح يظل مفتوحاً بالجاذبية حتى تزداد سرعة الماء المنحدر فتغلقه فجأة، ومنها ينشأ ضغط المطرقة المائية.
+                                </p>
+                                
+                                <div class="bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs text-amber-300">
+                                    <strong class="text-amber-400 font-bold block mb-1">🛠️ المادة والخامات الأنسب للصناعة:</strong>
+                                    <span id="det-materials">نحاس مقوى من نوع صمام رادود متأرجح Swing Check Valve.</span>
+                                </div>
+
+                                <div class="bg-rose-500/10 p-3 rounded-xl border border-rose-500/20 text-xs text-rose-300">
+                                    <strong class="text-rose-200 font-bold block mb-1">🔧 إصلاح الأعطال المترابطة:</strong>
+                                    <span id="det-troubles">الانسداد بالترسبات أو خطأ بوزن اللسان يؤديان لتوقف الدق وبقاء السائل مهدوراً.</span>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- TAB 2: ADVANCED CALCULATIONS -->
+                <div id="view-calculations" class="tab-content hidden max-w-4xl mx-auto space-y-6">
+                    <div class="bg-white p-5 sm:p-7 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                        
+                        <div class="border-b border-slate-100 pb-4">
+                            <h3 class="text-lg font-bold text-slate-800">التحليل الحركي والرياضي ومنحنيات الكفاءة</h3>
+                            <p class="text-xs text-slate-500 mt-1">حساب الكفاءة بفرض استخدام أنابيب صلبة خالية من الارتعاش وتشتت الضغط.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+                            <div class="space-y-4">
+                                <h4 class="text-xs sm:text-sm font-bold text-slate-800 flex items-center gap-1.5 font-sans">
+                                    <span class="p-1 px-2 bg-sky-50 text-sky-800 rounded font-bold text-[10px]">قانون دأوبيسون</span>
+                                    D'Aubuisson Efficiency Law
+                                </h4>
+                                <p class="text-xs text-slate-600 leading-relaxed">
+                                    تخضع كفاءة الرفع للمضخة للنسبة الهيدروستاتيكية للمرتفعين. تتراجع الكفاءة لوغاريتمياً كلما زاد ارتفاع خزان الهدف بالنسبة لارتفاع التغذية المتاح المسمى (<span class="font-semibold font-mono">h/H</span>).
+                                </p>
+                                <div class="bg-slate-100 p-4 rounded-xl border border-slate-200 text-center font-mono text-sm font-bold text-sky-850">
+                                    η = (q · h) / (Q · H)
+                                    <div class="text-[9px] text-slate-500 font-sans font-normal mt-1.5">
+                                        كفاءة الضخ المائي η = (تدفق الضخ المرفوع q × الارتفاع h) ÷ (تدفق المصدر الكلي Q × ارتفاع التغذية H)
+                                    </div>
+                                </div>
+                                <p class="text-[11px] text-slate-400 font-sans">
+                                    تنبيه عملي: الكفاءة الحقيقية تتدنى لغاية 50% من القيمة النظرية إذا استخدمت خراطيم مرنة، لأن تمدد جدران الخرطوم لامتصاص الصدمة يضيع طاقة الضغط بدلاً من توجيهها للأعلى.
+                                </p>
+                            </div>
+
+                            <!-- Plotted Graph SVG -->
+                            <div class="bg-slate-900 p-4 sm:p-5 rounded-2xl border border-slate-800 shadow-md">
+                                <div class="flex items-center justify-between mb-3 text-[11px]">
+                                    <span class="text-slate-350 font-bold">رسم بياني: الكفاءة مقابل نسبة الرفع (h/H)</span>
+                                    <span id="math-lbl-ratio" class="font-mono bg-sky-950 text-sky-400 px-2.5 py-0.5 rounded border border-sky-900">h/H = 6</span>
+                                </div>
+
+                                <div class="relative">
+                                    <svg viewBox="0 0 360 200" class="w-full h-auto overflow-visible">
+                                        <line x1="40" y1="15" x2="340" y2="15" stroke="#334155" stroke-width="0.7" stroke-dasharray="3 3" />
+                                        <text x="32" y="18" fill="#64748b" font-size="8" text-anchor="end">100%</text>
+
+                                        <line x1="40" y1="52.5" x2="340" y2="52.5" stroke="#334155" stroke-width="0.7" stroke-dasharray="3 3" />
+                                        <text x="32" y="55" fill="#64748b" font-size="8" text-anchor="end">75%</text>
+
+                                        <line x1="40" y1="90" x2="340" y2="90" stroke="#334155" stroke-width="0.7" stroke-dasharray="3 3" />
+                                        <text x="32" y="93" fill="#64748b" font-size="8" text-anchor="end">50%</text>
+
+                                        <line x1="40" y1="127.5" x2="340" y2="127.5" stroke="#334155" stroke-width="0.7" stroke-dasharray="3 3" />
+                                        <text x="32" y="130" fill="#64748b" font-size="8" text-anchor="end">25%</text>
+
+                                        <!-- Columns -->
+                                        <line x1="90" y1="15" x2="90" y2="165" stroke="#1e293b" stroke-width="0.7" />
+                                        <text x="90" y="178" fill="#64748b" font-size="8" text-anchor="middle">1:5</text>
+
+                                        <line x1="140" y1="15" x2="140" y2="165" stroke="#1e293b" stroke-width="0.7" />
+                                        <text x="140" y="178" fill="#64748b" font-size="8" text-anchor="middle">1:10</text>
+
+                                        <line x1="190" y1="15" x2="190" y2="165" stroke="#1e293b" stroke-width="0.7" />
+                                        <text x="190" y="178" fill="#64748b" font-size="8" text-anchor="middle">1:15</text>
+
+                                        <line x1="240" y1="15" x2="240" y2="165" stroke="#1e293b" stroke-width="0.7" />
+                                        <text x="240" y="178" fill="#64748b" font-size="8" text-anchor="middle">1:20</text>
+
+                                        <line x1="290" y1="15" x2="290" y2="165" stroke="#1e293b" stroke-width="0.7" />
+                                        <text x="290" y="178" fill="#64748b" font-size="8" text-anchor="middle">1:25</text>
+
+                                        <line x1="340" y1="15" x2="340" y2="165" stroke="#1e293b" stroke-width="0.7" />
+                                        <text x="340" y="178" fill="#64748b" font-size="8" text-anchor="middle">1:30</text>
+
+                                        <path id="svg-graph-curve-fill" d="" fill="url(#gradientWater)" opacity="0.15" />
+                                        <polyline id="svg-graph-curve" points="" stroke="#0ea5e9" stroke-width="2.5" fill="none" stroke-linecap="round" />
+
+                                        <!-- Highlight marker dot of ratios -->
+                                        <line id="svg-marker-lineX" x1="40" y1="15" x2="40" y2="15" stroke="#f59e0b" stroke-dasharray="2 2" stroke-width="0.8" opacity="0.6" />
+                                        <line id="svg-marker-lineY" x1="40" y1="165" x2="40" y2="165" stroke="#f59e0b" stroke-dasharray="2 2" stroke-width="0.8" opacity="0.6" />
+                                        <circle id="svg-marker-dot" cx="40" cy="15" r="5" fill="#f59e0b" stroke="#ffffff" stroke-width="1.5" />
+
+                                        <line x1="40" y1="15" x2="40" y2="165" stroke="#475569" stroke-width="1.2" />
+                                        <line x1="40" y1="165" x2="340" y2="165" stroke="#475569" stroke-width="1.2" />
+                                        
+                                        <text x="12" y="90" fill="#94a3b8" font-size="7.5" font-weight="bold" transform="rotate(-90 12 90)" text-anchor="middle">كفاءة الرفع والضخ (%)</text>
+                                        <text x="190" y="195" fill="#94a3b8" font-size="8" font-weight="bold" text-anchor="middle">نسبة مضاعفة الرفع الإجمالية (h/H)</text>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- INPUT BOARD KEYPADS CALCULATOR -->
+                        <div class="bg-slate-100 p-5 rounded-2xl border border-slate-200 space-y-4">
+                            <h4 class="text-sm font-bold text-slate-800 flex items-center gap-1.5">
+                                📟 حاسبة القياسات لتقدير إنتاج الموقع المستكشف
+                            </h4>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">ارتفاع التغذية المتاح H (متر):</label>
+                                    <input id="calc-val-H" type="number" step="0.1" value="3.0" oninput="runManualCalc()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono font-bold text-slate-800 focus:ring-1 focus:ring-sky-500 focus:outline-none" />
+                                    <span class="text-[9px] text-slate-400">الارتفاع المتوفر لتغذية المضخة (أمتار).</span>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1">ارتفاع الرفع المطلوب h (متر):</label>
+                                    <input id="calc-val-h" type="number" step="1" value="18.0" oninput="runManualCalc()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono font-bold text-slate-800 focus:ring-1 focus:ring-sky-500 focus:outline-none" />
+                                    <span class="text-[9px] text-slate-400">الارتفاع العمودي للخزان الأعلى.</span>
+                                </div>
+
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-700 mb-1 font-sans">تدفق المنبع المغذي Q (لتر/د):</label>
+                                    <input id="calc-val-Q" type="number" step="1" value="50.0" oninput="runManualCalc()" class="w-full bg-white border border-slate-300 rounded-lg px-3 py-1.5 text-xs font-mono font-bold text-slate-800 focus:ring-1 focus:ring-sky-500 focus:outline-none" />
+                                    <span class="text-[9px] text-slate-400">التدفق الإجمالي المنتج من العين.</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-900 rounded-xl p-4 grid grid-cols-1 sm:grid-cols-4 gap-4 text-center divide-y sm:divide-y-0 sm:divide-x sm:divide-x-reverse divide-slate-800 text-white">
+                                <div class="pt-1.5 sm:pt-0">
+                                    <div class="text-[9px] text-slate-400 uppercase font-sans">نسبة الرفع للتلة</div>
+                                    <div id="mcalc-ratio" class="text-sm font-bold font-mono text-amber-400 mt-1">1 : 6.0</div>
+                                </div>
+                                <div class="pt-3 sm:pt-0">
+                                    <div class="text-[9px] text-slate-400 uppercase font-sans">الكفاءة التشغيلية (η)</div>
+                                    <div id="mcalc-eff" class="text-sm font-bold font-mono text-sky-450 mt-1">60.9%</div>
+                                </div>
+                                <div class="pt-3 sm:pt-0">
+                                    <div class="text-[9px] text-slate-400 uppercase font-sans">التدفق الصافي q المتوقع</div>
+                                    <div id="mcalc-flow" class="text-sm font-bold font-mono text-emerald-400 mt-1">5.08 لتر/د</div>
+                                </div>
+                                <div class="pt-3 sm:pt-0">
+                                    <div class="text-[9px] text-slate-400 uppercase font-sans">الإنتاج اليومي الكلي</div>
+                                    <div id="mcalc-daily" class="text-base font-bold font-mono text-emerald-350 mt-0.5">7,314 لتر/يوم</div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- TAB 3: DIY GUIDE -->
+                <div id="view-diy" class="tab-content hidden max-w-4xl mx-auto space-y-6">
+                    <div class="bg-white p-5 sm:p-7 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                        <div class="border-b border-slate-100 pb-4">
+                            <h3 class="text-lg font-bold text-slate-800">🛠️ كراسة الصنع المنزلي والتركيب الذاتي (DIY)</h3>
+                            <p class="text-xs text-slate-500 mt-1">كيف تصنع صمامات مضختك باستثمار مستلزمات رخيصة ومتوفرة.</p>
+                        </div>
+
+                        <div class="space-y-4">
+                            <!-- Step 1 -->
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex gap-4 items-start">
+                                <span class="bg-indigo-650 text-white font-mono font-bold text-sm h-7 w-7 rounded-full flex items-center justify-center shrink-0">1</span>
+                                <div>
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-800">توفير القطع من محلات السباكة القياسية:</h4>
+                                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                                        ستحتاج رادود متأرجح نحاسي (صمام تصريف الفائض)، صمام رجوع ياي (صمام الرد المؤدي للغرفة)، تفريعة على شكل T نحاسية، أسطوانة حديد أو ماسورة PVC ثخينة لإعداد غرفة الضغط مع سدادة (Cap) غراء ضغط، صمام تفريغ صغير لإعادة الهواء يدعى Snifter Valve، ووصلات ومخفّضات قطر لتيسير ربط خراطيم التغذية والتوصيل.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex gap-4 items-start">
+                                <span class="bg-indigo-650 text-white font-mono font-bold text-sm h-7 w-7 rounded-full flex items-center justify-center shrink-0">2</span>
+                                <div>
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-800">توجيه وتعديل شوط صمام النفايات:</h4>
+                                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                                        صمام النفايات النحاسي المتأرجح يجب أن يُثبت بذكاء بشكل مقلوب بحيث يسقط لسانه للأسفل بالجاذبية الطبيعية فيبقى مفتوحاً بالوضع الساكن. يمكنك استخدام سيخ مسنن (مسمار طويل) برغي مع صواميل مضافة فوق ذراع الصمام ليوفر وزناً توازنياً يعزز مرونة زمن الإغلاق التلقائي.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex gap-4 items-start">
+                                <span class="bg-indigo-650 text-white font-mono font-bold text-sm h-7 w-7 rounded-full flex items-center justify-center shrink-0">3</span>
+                                <div>
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-800">تجمع غطاء الضغط الهوائي بدقة مانعة للتسريب:</h4>
+                                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                                        باستخدام غراء قوي مخصص للسباكة، أغلق الأنبوب العريض تماماً بالـ Cap. تسريب ذرة هواء واحدة من قمة هذه الغرفة سيفقدها الضغط تماماً، حيث يعمل الهواء كوسادة مكبسة لامتصاص ارتطام المطرقة المائية بمرونة ودفع عمود الماء للأعلى باستقرار.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Step 4 -->
+                            <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200 flex gap-4 items-start">
+                                <span class="bg-indigo-650 text-white font-mono font-bold text-sm h-7 w-7 rounded-full flex items-center justify-center shrink-0">4</span>
+                                <div>
+                                    <h4 class="text-xs sm:text-sm font-bold text-slate-800">التشغيل الأولي وطرد الهواء:</h4>
+                                    <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+                                        ثبت المضخة بقوة لربط متين بالخرسانية. افتح محبس المياه من المصدر، ستلاحظ هدر الماء وخروجه دون توقف في البداية. اضغط بإصبعك على ساق صمام النفايات النحاسي للأعلى برفق تكراراً لخلق النبض وتعبئة الغرفة بالماء وضغط الهواء، بعد عدة ضربات، ستعمل المضخة ذاتياً وتسمع نغمة صدمات الدق الممتعة!
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- TAB 4: TROUBLESHOOTING -->
+                <div id="view-troubleshooting" class="tab-content hidden max-w-4xl mx-auto space-y-6">
+                    <div class="bg-white p-5 sm:p-7 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+                        <div class="border-b border-slate-100 pb-4">
+                            <h3 class="text-lg font-bold text-slate-800">🔧 دليل تشخيص الأعطال والصيانة الوقائية للمكبس</h3>
+                            <p class="text-xs text-slate-500 mt-1">تداول المشاكل الشائعة التي تعيق المضخات الميكانيكية ذات التغذية الذاتية وحلولها الميدانية السريعة.</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                                <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded">العَرَض: دقات سريعة جداً وخفيفة بلا أي رفع للماء</span>
+                                <p class="text-xs text-slate-700">
+                                    <strong class="text-slate-900 block font-bold mb-0.5">السبب الرئيسي:</strong>
+                                    امتلاء الغرفة بالكامل بالماء (Waterlogged) وذوبان مخزون وسادة الهواء المرنة بداخل السائل.
+                                </p>
+                                <p class="text-[11px] text-emerald-750 bg-emerald-50 p-2 rounded-xl">
+                                    <strong class="font-bold">حل الصيانة:</strong>
+                                    أوقف تشغيل الخط المائي، وافكك الغرفة لتصريف السائل منها تماماً لتعبئتها بالهواء العادي مرة أخرى، ثم أحكم قمتها بشريط التفلون وتأكد من وجود الغشاء أو صمام الشفط الهوائي الصغير.
+                                </p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                                <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded">العَرَض: صمام النفايات مغلق صامت والماء لا يجري</span>
+                                <p class="text-xs text-slate-700">
+                                    <strong class="text-slate-900 block font-bold mb-0.5">السبب الرئيسي:</strong>
+                                    تجاوز الضغط المائي القادم قوة لسان الصمام بفعل قلة وزنه التوازني، أو أن الشوط ضيق للغاية.
+                                </p>
+                                <p class="text-[11px] text-emerald-755 bg-emerald-50 p-2 rounded-xl">
+                                    <strong class="font-bold">حل الصيانة:</strong>
+                                    زد صواميل الأوزان الحديدية على لسان الصمام المتأرجح المانع، أو عدّل برغي التعديل لتوليد فتحة شوط أوسع تضمن هبوطه بذاته.
+                                </p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                                <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded">العَرَض: مياه تهرب باستمرار دون حدوث ضربات انغلاق</span>
+                                <p class="text-xs text-slate-700">
+                                    <strong class="text-slate-900 block font-bold mb-0.5">السبب الرئيسي:</strong>
+                                    تدفق مياه المصدر شحيح وضعيف لا يكفي لبناء القصور الذاتي الكفيل بغلق صمام الهدر، أو أن أوزان لسان الصمام مبالغ بثقلها.
+                                </p>
+                                <p class="text-[11px] text-emerald-750 bg-emerald-50 p-2 rounded-xl">
+                                    <strong class="font-bold">حل الصيانة:</strong>
+                                    أزل بعض صواميل الوزن التوازني بالتدريج، وتفقد أنبوب التغذية وتخطيطات ميله للتأكد من عدم وجود مصايد هواء بالداخل.
+                                </p>
+                            </div>
+
+                            <div class="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2">
+                                <span class="text-xs font-bold text-rose-600 bg-rose-50 px-2.5 py-1 rounded">العَرَض: اهتزازات بالغة العنف وأصوات مزعجة للأنابيب</span>
+                                <p class="text-xs text-slate-700">
+                                    <strong class="text-slate-900 block font-bold mb-0.5">السبب الرئيسي:</strong>
+                                    عدم كفاية كبت الهواء أو تخلخل الغرفة، مع ضعف ارتكاز جسد المكبس في خرسانة التثبيت الأرضية.
+                                </p>
+                                <p class="text-[11px] text-emerald-750 bg-emerald-50 p-2 rounded-xl">
+                                    <strong class="font-bold">حل الصيانة:</strong>
+                                    ثبت المضخة بقاعدة ثقيلة أو بالمسامير في الأرضية للحد من الاهتزازات المدمرة وتفقد وسادة هواء قبة الضغط.
+                                </p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <footer class="mt-6 text-center text-[11px] text-slate-400">
+            تطوير تفاعلي لموقع المدونة - جميع الحقوق هيدروليكياً محفوظة 2026 &copy; نشر وتضمين في خطوة واحدة في Blogger.
+        </footer>
+    </div>
+
+    <!-- JAVASCRIPT SIMULATION LOGIC -->
+    <script>
+        const componentDetails = {
+            source_tank: {
+                title: "خزان التغذية والمصدر (أ)",
+                role: "يوفر مصدر المياه الدائم والمستقر بارتفاع بسيط (H) فوق المضخة. هذا الارتفاع البسيط هو مصدر الطاقة الحركية الرئيسي الذي يشغل المضخة دون كهرباء.",
+                materials: "أنهار طبيعية، عيون مائية، أو خزان بلاستيكي ذو مغذيات عريضة ومستمرة.",
+                troubleshooting: "يلزم استخدام مصفاة سلكية أو فلتر شبكي في مخرج الخزان لمنع تسلل أوراق الشجر والحصى."
+            },
+            drive_pipe: {
+                title: "أنبوب الدفع والتغذية (ب)",
+                role: "قناة صلبة تنقل المياه من خزان المصدر للمضخة. يجب أن يكون ثقيلاً وصعب التمدد تماماً (الحديد أو PVC Schedule 80) لينقل موجة المطرقة المائية دون امتصاص طاقتها.",
+                materials: "الحديد المجلفن الكربوني أو أنابيب بلاستيكية PVC سميكة الجدران ومشدودة بمشابك صلبة.",
+                troubleshooting: "تجنب تماماً استخدام الخراطيم اللينة أو الأكواع والزوايا الحادة لأنها تؤدي إلى فقدان قوة الضخ لضعف التراكم الحركي."
+            },
+            waste_valve: {
+                title: "صمام النفايات (ج) - منظم النبض",
+                role: "صمام رادود متأرجح يظل مفتوحاً بفعل ثقله في البداية حتى تتسارع مياه جدار الأنبوب بالانحدار متجاوزة حد سحب اللسان، لتغلقه فجأة محدثة صدمة المطرقة المائية.",
+                materials: "نحاس مقوى من نوع صمام Swing Check Valve المقاوم للاحتكاك المتتالي والصدم المستمر.",
+                troubleshooting: "الانسداد بالأوساخ المترسبة يسبب في بقائه ممتنعاً عن الإغلاق، أو قد يعلق مغلقاً بسبب هزال الأوزان المضافة بالبراغي."
+            },
+            check_valve: {
+                title: "صمام الرد اللارجعي (د) - صمام الغرفة",
+                role: "يسمح للمائع بتجاوز الصمام باتجاه واحد فقط نحو حجرة الضغط. ينفتح في الجزء الميكروي من الثانية عند قمة ضربة مطرقة الضغط، وينغلق فوراً ليحبس قطرات الضخ داخل الغرفة.",
+                materials: "صمام رد رأسي بياي مرن وسريع الاستجابة ومحكم التكثيف لمنع أي تراجع للسائل.",
+                troubleshooting: "أي تسريب مهما كان دقيقاً في هذا الصمام سيترتب عليه هبوط فوري للماء المحشور في الغرفة وضياع ضغط الرفع الكلي."
+            },
+            air_chamber: {
+                title: "قمة غرفة الضغط الهوائي (هـ)",
+                role: "تضم مخزوناً هوائياً ينضغط ذاتياً مع كل موجة دفع مائي قادمة من صمام الرد، ليعمل الهواء كـ المكبس الهيدروليكي اللين الذي يمتص العنف الهائل ويحوله لضخ ناعم.",
+                materials: "أنبوب PVC ذو غطاء محكم الغراء أو أسطوانات حديد مع لولبة عريضة مانعة للتكهف وتسريب الهواء.",
+                troubleshooting: "نفاذ الهواء التام منه يسبب في ارتطام عنيف جداً وقد ينتهي بكسر الأنابيب وصموت حركة الملس لعدم وجود مرونة."
+            },
+            delivery_pipe: {
+                title: "أنبوب التوصيل والرفع (و)",
+                role: "خط رفع ذو قطر مصغر (نصف أو ثمن قطر أنبوب التغذية) يقوم بنقل الكميات الصافية من المياه المرفوعة بفعل كبس الهواء المخزن في الغرفة لارتفاع الحقل المحدود.",
+                materials: "خراطيم بولي إيثيلين سوداء زراعية (HDPE) أو PVC مرنة ويسيرة التثبيت واللف.",
+                troubleshooting: "التشابك وانسداد الخرطوم الداخلي يرفع الضغط بالغرفة لحدود مفرطة قد تتسبب بتوقف الصمام المتأرجح عن الحركة صامتاً."
+            },
+            delivery_tank: {
+                title: "خزان التجميع والهدف (ز)",
+                role: "الحوض المطلق الرأس الموضوع على تلال أو حظائر زراعية مخازنة، يستعمل لحصد المياه النقية المستخلصة دون فاقد لاستعماله بالجاذبية لري محاصيلك.",
+                materials: "خزانات بلاستيكية قياسية مجهزة بمخارج ري وتدفق توازني.",
+                troubleshooting: "تأكد من بقاء صمام الطوفان أو الفائض متوازناً لتنصيب الماء الفائض وإرجاعه للمسار المائي الطبيعي."
+            }
+        };
+
+        const phases = [
+            {
+                badge: "المرحلة 1",
+                title: "تسارع تدفق المياه وانطلاق النبضة",
+                waste: "open",
+                check: "closed",
+                flow: "accelerating",
+                indicator: "مفتوح (تصريف مهدور)"
+            },
+            {
+                badge: "المرحلة 2",
+                title: "إغلاق صمام النفايات الفجائي وصدمة المطرقة",
+                waste: "closed",
+                check: "closed",
+                flow: "shock",
+                indicator: "مغلق فجأة (مطرقة مائة)"
+            },
+            {
+                badge: "المرحلة 3",
+                title: "انفتاح صمام الرد وضخ المياه لغرفة الضغط",
+                waste: "closed",
+                check: "open",
+                flow: "pumping",
+                indicator: "مغلق (الضخ للغرفة)"
+            },
+            {
+                badge: "المرحلة 4",
+                title: "فقد الطاقة، ارتداد الضغط، وفتح الصمام مجدداً",
+                waste: "open",
+                check: "closed",
+                flow: "recoil",
+                indicator: "مفتوح (ارتداد تفريغ)"
+            }
+        ];
+
+        let currentPhaseIndex = 0;
+        let isRunning = true;
+        let speedMultiplier = 1;
+        let particleOffset = 0;
+
+        let statsBeats = 0;
+        let statsWasted = 0;
+        let statsPumped = 0;
+
+        let paramH = 2.5;
+        let paramh = 15.0;
+        let paramQ = 45.0;
+        let paramWeight = 3;
+
+        let pressureHistory = Array(60).fill(0.25);
+
+        window.addEventListener('DOMContentLoaded', () => {
+            selectComponent('waste_valve');
+            runCalculationsAndUpdate();
+            plotTheoreticalGraph();
+            simTick();
+        });
+
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('border-sky-400', 'text-sky-400', 'bg-sky-955/20');
+                btn.classList.add('border-transparent', 'text-slate-400');
+            });
+
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            const clickedBtn = document.getElementById('tab-btn-' + tabId);
+            clickedBtn.classList.add('border-sky-400', 'text-sky-400', 'bg-sky-955/20');
+            clickedBtn.classList.remove('border-transparent', 'text-slate-400');
+
+            if (tabId === 'calculations') {
+                plotTheoreticalGraph();
+            }
+        }
+
+        function toggleRunning() {
+            isRunning = !isRunning;
+            document.getElementById('play-pause-btn').innerText = isRunning ? 'إيقاف مؤقت' : 'استئناف الحركة';
+            document.getElementById('play-pause-btn').className = isRunning ? 
+                "flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 transition" :
+                "flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition";
+        }
+
+        function setSpeedMultiplier(val) {
+            speedMultiplier = val;
+            document.querySelectorAll('.speed-btn').forEach(btn => {
+                btn.classList.remove('bg-sky-600', 'text-white');
+                btn.classList.add('bg-slate-100', 'text-slate-600');
+            });
+            if (val === 0.5) document.getElementById('speed-0').className = "speed-btn text-[9px] font-bold px-2 py-1 bg-sky-600 text-white border-l border-slate-200";
+            if (val === 1) document.getElementById('speed-1').className = "speed-btn text-[9px] font-bold px-2 py-1 bg-sky-600 text-white border-l border-slate-200";
+            if (val === 2) document.getElementById('speed-2').className = "speed-btn text-[9px] font-bold px-2 py-1 bg-sky-600 text-white border-l border-slate-200";
+        }
+
+        function forceNextStep() {
+            advancePhase();
+        }
+
+        function forcePhase(idx) {
+            currentPhaseIndex = idx;
+            updateInterfaceForPhase();
+        }
+
+        function selectComponent(compId) {
+            document.querySelectorAll('[id^="pin-"]').forEach(p => {
+                p.setAttribute('fill', '#1e293b');
+                p.classList.remove('glow-pulse');
+            });
+            
+            const activePin = document.getElementById('pin-' + compId);
+            if (activePin) {
+                activePin.setAttribute('fill', '#0ea5e9');
+                activePin.classList.add('glow-pulse');
+            }
+
+            const data = componentDetails[compId];
+            if (data) {
+                document.getElementById('det-arabic-title').innerText = data.title;
+                document.getElementById('det-role').innerText = data.role;
+                document.getElementById('det-materials').innerText = data.materials;
+                document.getElementById('det-troubles').innerText = data.troubleshooting;
+            }
+        }
+
+        function runCalculationsAndUpdate() {
+            paramH = parseFloat(document.getElementById('slider-H').value);
+            paramh = parseFloat(document.getElementById('slider-h').value);
+            paramQ = parseFloat(document.getElementById('slider-Q').value);
+            paramWeight = parseInt(document.getElementById('slider-weight').value);
+
+            document.getElementById('slide-lbl-H').innerText = paramH.toFixed(1) + " متر";
+            document.getElementById('slide-lbl-h').innerText = paramh.toFixed(0) + " متر";
+            document.getElementById('slide-lbl-Q').innerText = paramQ.toFixed(0) + " لتر/د";
+            document.getElementById('slide-lbl-weight').innerText = paramWeight + " (توازن " + (paramWeight === 3 ? "مثالي" : paramWeight < 3 ? "خفيف دقات أسرع" : "ثقيل ضغط عالي") + ")";
+
+            let beatsRate = Math.round(60 + (paramH * 5) - (paramWeight * 9));
+            document.getElementById('beats-indicator').innerText = beatsRate + " دقة/دقيقة";
+
+            let ratio = paramh / paramH;
+            let efficiency = Math.max(0.04, Math.min(0.85, 0.9 * Math.exp(-0.065 * ratio)));
+            document.getElementById('live-eff').innerText = (efficiency * 100).toFixed(1) + "%";
+
+            let deliveryFlow = Math.max(0.01, (paramQ * (paramH / paramh) * efficiency));
+            document.getElementById('live-flow').innerText = deliveryFlow.toFixed(2) + " لتر/د";
+
+            let dailyQuantity = Math.round(deliveryFlow * 60 * 24);
+            document.getElementById('live-daily').innerText = dailyQuantity.toLocaleString() + " لتر/يوم";
+
+            document.getElementById('lbl-H-val').textContent = "H = " + paramH.toFixed(1) + "m";
+            document.getElementById('lbl-h-val').textContent = "h = " + paramh.toFixed(0) + "m";
+
+            updateTheoreticalMarkerOnPlotted(ratio, efficiency);
+        }
+
+        function runManualCalc() {
+            let mH = parseFloat(document.getElementById('calc-val-H').value) || 1;
+            let mh = parseFloat(document.getElementById('calc-val-h').value) || 5;
+            let mQ = parseFloat(document.getElementById('calc-val-Q').value) || 10;
+
+            let mRatio = mh / mH;
+            document.getElementById('mcalc-ratio').innerText = "1 : " + mRatio.toFixed(1);
+
+            let mEff = Math.max(0.04, Math.min(0.85, 0.9 * Math.exp(-0.065 * mRatio)));
+            document.getElementById('mcalc-eff').innerText = (mEff * 100).toFixed(1) + "%";
+
+            let mFlow = Math.max(0.01, (mQ * (mH / mh) * mEff));
+            document.getElementById('mcalc-flow').innerText = mFlow.toFixed(2) + " لتر/د";
+
+            let mDaily = Math.round(mFlow * 60 * 24);
+            document.getElementById('mcalc-daily').innerText = mDaily.toLocaleString() + " لتر/يوم";
+        }
+
+        function simTick() {
+            setTimeout(() => {
+                if (isRunning) {
+                    advanceSimulationFrame();
+                }
+                simTick();
+            }, 65);
+        }
+
+        let frameCounter = 0;
+        function advanceSimulationFrame() {
+            frameCounter++;
+            particleOffset += (speedMultiplier * 4);
+            if (particleOffset > 100) particleOffset = 0;
+
+            shiftParticles();
+
+            const threshold = Math.max(5, Math.round(40 / speedMultiplier));
+            if (frameCounter >= threshold) {
+                frameCounter = 0;
+                advancePhase();
+            }
+        }
+
+        function advancePhase() {
+            currentPhaseIndex = (currentPhaseIndex + 1) % 4;
+            updateInterfaceForPhase();
+
+            if (currentPhaseIndex === 1) { 
+                statsBeats++;
+                let flowLMin = parseFloat(document.getElementById('live-flow').innerText);
+                let perBeatPumped = flowLMin / parseInt(document.getElementById('beats-indicator').innerText);
+                statsPumped += perBeatPumped;
+
+                let wastedPerMin = paramQ - flowLMin;
+                let perBeatWasted = wastedPerMin / parseInt(document.getElementById('beats-indicator').innerText);
+                statsWasted += perBeatWasted;
+
+                document.getElementById('metric-beats').innerText = statsBeats + " دقة";
+                document.getElementById('metric-pumped').innerText = statsPumped.toFixed(3) + " لتر";
+                document.getElementById('metric-wasted').innerText = statsWasted.toFixed(3) + " لتر";
+            }
+        }
+
+        function updateInterfaceForPhase() {
+            const phase = phases[currentPhaseIndex];
+            
+            document.getElementById('phase-badge').className = currentPhaseIndex === 1 ?
+                "px-2.5 py-1 bg-rose-500 text-white font-extrabold rounded-lg text-xs" :
+                "px-2.5 py-1 bg-sky-100 text-sky-800 font-extrabold rounded-lg text-xs";
+            document.getElementById('phase-badge').innerText = phase.badge;
+            document.getElementById('phase-title').innerText = phase.title;
+
+            const valInd = document.getElementById('valve-indicator');
+            valInd.innerText = phase.title.replace(/المرحلة \d: /, '');
+            valInd.className = currentPhaseIndex === 1 ? "text-xs font-bold text-rose-500 flex items-center gap-1" : "text-xs font-bold text-emerald-400 flex items-center gap-1";
+
+            const wastePlunger = document.getElementById('svg-waste-plunger');
+            const checkGate = document.getElementById('svg-check-gate');
+            const waterSpray = document.getElementById('svg-water-spray');
+            const hammerSpark = document.getElementById('svg-hammer-spark');
+            const flowDots = document.getElementById('svg-delivery-dash-flow');
+            const targetWaterTrickle = document.getElementById('svg-water-trickle');
+            const domeWaterLevel = document.getElementById('svg-chamber-water-level');
+
+            if (phase.waste === 'open') {
+                wastePlunger.setAttribute('transform', 'translate(0, 8)');
+                waterSpray.style.opacity = '1';
+            } else {
+                wastePlunger.setAttribute('transform', 'translate(0, -5)');
+                waterSpray.style.opacity = '0';
+            }
+
+            if (phase.check === 'open') {
+                checkGate.setAttribute('transform', 'rotate(-30 360 310)');
+                flowDots.setAttribute('stroke', '#ffffff');
+                targetWaterTrickle.style.opacity = '1';
+                domeWaterLevel.setAttribute('height', '80');
+                domeWaterLevel.setAttribute('y', '225');
+            } else {
+                checkGate.setAttribute('transform', 'rotate(0 360 310)');
+                flowDots.setAttribute('stroke', 'transparent');
+                targetWaterTrickle.style.opacity = '0';
+                domeWaterLevel.setAttribute('height', '70');
+                domeWaterLevel.setAttribute('y', '235');
+            }
+
+            if (currentPhaseIndex === 1) {
+                hammerSpark.style.opacity = '0.9';
+                setTimeout(() => { hammerSpark.style.opacity = '0'; }, 180);
+            }
+
+            pushPressureSparkDataPoint();
+
+            for (let i = 0; i < 4; i++) {
+                const row = document.getElementById('phase-idx-' + i);
+                if (i === currentPhaseIndex) {
+                    row.className = "p-2.5 rounded-xl border bg-sky-600 border-sky-700 text-white font-bold cursor-pointer transition";
+                } else {
+                    row.className = "p-2.5 rounded-xl border bg-white border-slate-200 text-slate-600 hover:border-slate-300 cursor-pointer transition";
+                }
+            }
+        }
+
+        function shiftParticles() {
+            let bp1 = document.getElementById('bp1');
+            let bp2 = document.getElementById('bp2');
+            let bp3 = document.getElementById('bp3');
+            let bp4 = document.getElementById('bp4');
+
+            let ratio = particleOffset / 100;
+            
+            let xStart = 125, yStart = 205;
+            let xEnd = 340, yEnd = 350;
+
+            bp1.setAttribute('cx', xStart + (xEnd - xStart) * ((ratio + 0.0) % 1.0));
+            bp1.setAttribute('cy', yStart + (yEnd - yStart) * ((ratio + 0.0) % 1.0));
+
+            bp2.setAttribute('cx', xStart + (xEnd - xStart) * ((ratio + 0.25) % 1.0));
+            bp2.setAttribute('cy', yStart + (yEnd - yStart) * ((ratio + 0.25) % 1.0));
+
+            bp3.setAttribute('cx', xStart + (xEnd - xStart) * ((ratio + 0.5) % 1.0));
+            bp3.setAttribute('cy', yStart + (yEnd - yStart) * ((ratio + 0.5) % 1.0));
+
+            bp4.setAttribute('cx', xStart + (xEnd - xStart) * ((ratio + 0.75) % 1.0));
+            bp4.setAttribute('cy', yStart + (yEnd - yStart) * ((ratio + 0.75) % 1.0));
+        }
+
+        function pushPressureSparkDataPoint() {
+            const staticSupply = paramH / 10;
+            const staticDelivery = paramh / 10;
+            let barPoint = staticSupply;
+
+            if (currentPhaseIndex === 0) {
+                barPoint = staticSupply + 0.09;
+            } else if (currentPhaseIndex === 1) {
+                barPoint = staticDelivery + 1.6 + (paramWeight * 0.2);
+            } else if (currentPhaseIndex === 2) {
+                barPoint = staticDelivery + 0.3;
+            } else if (currentPhaseIndex === 3) {
+                barPoint = staticSupply - 0.12;
+            }
+
+            document.getElementById('gauge-pressure').innerText = barPoint.toFixed(2) + " Bar";
+
+            pressureHistory.shift();
+            pressureHistory.push(barPoint);
+
+            let chartPath = document.getElementById('chart-spark-path');
+            let width = 500;
+            let height = 100;
+            let step = width / (pressureHistory.length - 1);
+
+            let dString = "M ";
+            for (let i = 0; i < pressureHistory.length; i++) {
+                let x = i * step;
+                let pressureClamped = Math.max(0, Math.min(6.5, pressureHistory[i]));
+                let y = height - 15 - (pressureClamped / 6.5) * (height - 30);
+                dString += x.toFixed(1) + "," + y.toFixed(1) + " ";
+                if (i === 0) dString = "M " + x.toFixed(1) + "," + y.toFixed(1) + " L ";
+            }
+            chartPath.setAttribute('d', dString);
+        }
+
+        function resetOdometer() {
+            statsBeats = 0;
+            statsWasted = 0;
+            statsPumped = 0;
+            document.getElementById('metric-beats').innerText = "0 دقة";
+            document.getElementById('metric-pumped').innerText = "0.000 لتر";
+            document.getElementById('metric-wasted').innerText = "0.000 لتر";
+        }
+
+        function plotTheoreticalGraph() {
+            const svgLine = document.getElementById('svg-graph-curve');
+            const svgFill = document.getElementById('svg-graph-curve-fill');
+            
+            let points = [];
+            let xOffset = 40;
+            let width = 300;
+            let heightLimit = 150;
+
+            for (let r = 2; r <= 32; r += 1) {
+                let eff = Math.max(0.04, Math.min(0.85, 0.9 * Math.exp(-0.065 * r)));
+                let x = xOffset + ((r - 2) / 30) * width;
+                let y = 15 + (1 - eff) * heightLimit;
+                points.push({x, y, r, eff});
+            }
+
+            let lineStr = points.map(p => p.x.toFixed(1) + "," + p.y.toFixed(1)).join(' ');
+            svgLine.setAttribute('points', lineStr);
+
+            let fillStr = `M 40,165 L ${points[0].x.toFixed(1)},165 L ` + 
+                          points.map(p => p.x.toFixed(1) + "," + p.y.toFixed(1)).join(' L ') + 
+                          ` L ${points[points.length-1].x.toFixed(1)},165 Z`;
+            svgFill.setAttribute('d', fillStr);
+        }
+
+        function updateTheoreticalMarkerOnPlotted(ratio, eff) {
+            const mDot = document.getElementById('svg-marker-dot');
+            const lX = document.getElementById('svg-marker-lineX');
+            const lY = document.getElementById('svg-marker-lineY');
+
+            document.getElementById('math-lbl-ratio').innerText = "h/H = " + ratio.toFixed(1) + " (كفاءة " + (eff * 100).toFixed(0) + "%)";
+
+            let ratioClamped = Math.max(2, Math.min(32, ratio));
+            let x = 40 + ((ratioClamped - 2) / 30) * 300;
+            let y = 15 + (1 - eff) * 150;
+
+            if (mDot && lX && lY) {
+                mDot.setAttribute('cx', x.toFixed(1));
+                mDot.setAttribute('cy', y.toFixed(1));
+
+                lX.setAttribute('x1', '40');
+                lX.setAttribute('y1', y.toFixed(1));
+                lX.setAttribute('x2', x.toFixed(1));
+                lX.setAttribute('y2', y.toFixed(1));
+
+                lY.setAttribute('x1', x.toFixed(1));
+                lY.setAttribute('y1', '165');
+                lY.setAttribute('x2', x.toFixed(1));
+                lY.setAttribute('y2', y.toFixed(1));
+            }
+        }
+    </script>
+</body>
+</html>
